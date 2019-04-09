@@ -37,8 +37,10 @@ void FeatureTracker::setMask()
 {
     if(FISHEYE)
         mask = fisheye_mask.clone();
-    else
-        mask = cv::Mat(ROW, COL, CV_8UC1, cv::Scalar(255));
+    else{
+	// Modified from CV_8UC1, cv::Scalar(255)
+        mask = cv::Mat(ROW, COL, CV_16UC1, cv::Scalar(65535));
+    }
     
 
     // prefer to keep features that are tracked for long time
@@ -58,7 +60,8 @@ void FeatureTracker::setMask()
 
     for (auto &it : cnt_pts_id)
     {
-        if (mask.at<uchar>(it.second.first) == 255)
+        //modified from if (mask.at<uchar>(it.second.first) == 255)
+        if (mask.at<unsigned short>(it.second.first) == 65535)
         {
             forw_pts.push_back(it.second.first);
             ids.push_back(it.second.second);
@@ -91,8 +94,9 @@ void FeatureTracker::readImage(const cv::Mat &_img, double _cur_time)
         clahe->apply(_img, img);
         ROS_DEBUG("CLAHE costs: %fms", t_c.toc());
     }
-    else
-        img = _img;
+    else{
+        _img.convertTo(img, CV_32F, 1.0/65535.0f);
+    }
 
     if (forw_img.empty())
     {
