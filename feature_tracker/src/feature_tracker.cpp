@@ -61,7 +61,7 @@ void FeatureTracker::setMask()
     for (auto &it : cnt_pts_id)
     {
         //if (mask.at<uchar>(it.second.first) == 255)
-        if (mask.at<ushort>(it.second.first) == 65535)
+        if (mask.at<unsigned short>(it.second.first) == 65535)
         {
             forw_pts.push_back(it.second.first);
             ids.push_back(it.second.second);
@@ -94,8 +94,9 @@ void FeatureTracker::readImage(const cv::Mat &_img, double _cur_time)
         clahe->apply(_img, img);
         ROS_DEBUG("CLAHE costs: %fms", t_c.toc());
     }
-    else
-        img = _img;
+    else{
+        _img.convertTo(img, CV_32F, 1.0/65535.0f);
+    }
 
     if (forw_img.empty())
     {
