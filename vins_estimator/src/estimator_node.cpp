@@ -290,7 +290,9 @@ void process()
                 estimator.setReloFrame(frame_stamp, frame_index, match_points, relo_t, relo_r);
             }
 
-            ROS_DEBUG("processing vision data with stamp %f \n", img_msg->header.stamp.toSec());
+            ROS_DEBUG("Processing vision data with stamp %f \n", img_msg->header.stamp.toSec());
+            ROS_INFO("Processing vision data with stamp %f \n", img_msg->header.stamp.toSec());
+            ROS_INFO("Processing points  %lu \n", img_msg->points.size());
 
             TicToc t_s;
             map<int, vector<pair<int, Eigen::Matrix<double, 7, 1>>>> image;

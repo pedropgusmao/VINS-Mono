@@ -37,8 +37,10 @@ void FeatureTracker::setMask()
 {
     if(FISHEYE)
         mask = fisheye_mask.clone();
-    else
-        mask = cv::Mat(ROW, COL, CV_8UC1, cv::Scalar(255));
+    else{
+        mask = cv::Mat(ROW, COL, CV_16UC1, cv::Scalar(65535));
+        //mask = cv::Mat(ROW, COL, CV_8UC1, cv::Scalar(255));
+    }
     
 
     // prefer to keep features that are tracked for long time
@@ -58,7 +60,8 @@ void FeatureTracker::setMask()
 
     for (auto &it : cnt_pts_id)
     {
-        if (mask.at<uchar>(it.second.first) == 255)
+        //if (mask.at<uchar>(it.second.first) == 255)
+        if (mask.at<ushort>(it.second.first) == 65535)
         {
             forw_pts.push_back(it.second.first);
             ids.push_back(it.second.second);
@@ -110,11 +113,28 @@ void FeatureTracker::readImage(const cv::Mat &_img, double _cur_time)
         TicToc t_o;
         vector<uchar> status;
         vector<float> err;
-        cv::calcOpticalFlowPyrLK(cur_img, forw_img, cur_pts, forw_pts, status, err, cv::Size(21, 21), 3);
+
+        //worse case scenario, apply normalization to each patch during OpicalFlow 
+        cv::Mat cur_img_8u, forw_img_8u;
+        double cur_min, cur_max, forw_min, forw_max, min_16, max_16;
+
+        cv::minMaxLoc(cur_img, &cur_min, &cur_max);
+        cv::minMaxLoc(forw_img, &forw_min, &forw_max);
+
+        min_16 = (cur_min < forw_min) ? cur_min : forw_min;
+        max_16 = (cur_max > forw_max ) ? cur_max : forw_max;
+
+        cur_img.convertTo(cur_img_8u, CV_8UC1, 255.0/(max_16-min_16) , -255.0*min_16/(max_16-min_16));
+        forw_img.convertTo(forw_img_8u, CV_8UC1, 255.0/(max_16-min_16) , -255.0*min_16/(max_16-min_16));
+
+        cv::calcOpticalFlowPyrLK(cur_img_8u, forw_img_8u, cur_pts, forw_pts, status, err, cv::Size(21, 21), 3);
+
+        //cv::calcOpticalFlowPyrLK(cur_img, forw_img, cur_pts, forw_pts, status, err, cv::Size(21, 21), 3);
 
         for (int i = 0; i < int(forw_pts.size()); i++)
             if (status[i] && !inBorder(forw_pts[i]))
                 status[i] = 0;
+
         reduceVector(prev_pts, status);
         reduceVector(cur_pts, status);
         reduceVector(forw_pts, status);
@@ -142,11 +162,17 @@ void FeatureTracker::readImage(const cv::Mat &_img, double _cur_time)
         {
             if(mask.empty())
                 cout << "mask is empty " << endl;
-            if (mask.type() != CV_8UC1)
+            //if (mask.type() != CV_8UC1)
+            if (mask.type() != CV_16UC1)
                 cout << "mask type wrong " << endl;
             if (mask.size() != forw_img.size())
                 cout << "wrong size " << endl;
-            cv::goodFeaturesToTrack(forw_img, n_pts, MAX_CNT - forw_pts.size(), 0.01, MIN_DIST, mask);
+
+            cv::Mat forw_img_32f;
+            forw_img.convertTo(forw_img_32f, CV_32FC1, 1.0/65535.0);
+            cv::goodFeaturesToTrack(forw_img_32f, n_pts, MAX_CNT - forw_pts.size(), 0.001, MIN_DIST);
+            ROS_INFO("Number of goodFeatures found inside FeatureTracker::readImage %ul", n_pts.size());
+            //cv::goodFeaturesToTrack(forw_img, n_pts, MAX_CNT - forw_pts.size(), 0.01, MIN_DIST, mask);
         }
         else
             n_pts.clear();

@@ -65,7 +65,8 @@ void BRIEF::compute(const cv::Mat &image,
     im = image;
   }
   
-  assert(im.type() == CV_8UC1);
+  assert(im.type() == CV_16UC1);
+  //assert(im.type() == CV_8UC1);
   assert(im.isContinuous());
   
   // use im now
@@ -95,7 +96,7 @@ void BRIEF::compute(const cv::Mat &image,
       if(x1 >= 0 && x1 < W && y1 >= 0 && y1 < H 
         && x2 >= 0 && x2 < W && y2 >= 0 && y2 < H)
       {
-        if( im.ptr<unsigned char>(y1)[x1] < im.ptr<unsigned char>(y2)[x2] )
+        if( im.ptr<unsigned short>(y1)[x1] < im.ptr<unsigned short>(y2)[x2] )
         {
           dit->set(i);
         }        

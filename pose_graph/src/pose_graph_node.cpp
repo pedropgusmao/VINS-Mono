@@ -371,7 +371,7 @@ void process()
                 ptr = cv_bridge::toCvCopy(img, sensor_msgs::image_encodings::MONO8);
             }
             else
-                ptr = cv_bridge::toCvCopy(image_msg, sensor_msgs::image_encodings::MONO8);
+                ptr = cv_bridge::toCvCopy(image_msg, sensor_msgs::image_encodings::MONO16);
             
             cv::Mat image = ptr->image;
             // build keyframe

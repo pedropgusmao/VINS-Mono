@@ -74,8 +74,9 @@ void img_callback(const sensor_msgs::ImageConstPtr &img_msg)
         img.encoding = "mono8";
         ptr = cv_bridge::toCvCopy(img, sensor_msgs::image_encodings::MONO8);
     }
-    else
-        ptr = cv_bridge::toCvCopy(img_msg, sensor_msgs::image_encodings::MONO8);
+    else{
+        ptr = cv_bridge::toCvCopy(img_msg, sensor_msgs::image_encodings::MONO16);
+    }
 
     cv::Mat show_img = ptr->image;
     TicToc t_r;
@@ -169,14 +170,16 @@ void img_callback(const sensor_msgs::ImageConstPtr &img_msg)
             ptr = cv_bridge::cvtColor(ptr, sensor_msgs::image_encodings::BGR8);
             //cv::Mat stereo_img(ROW * NUM_OF_CAM, COL, CV_8UC3);
             cv::Mat stereo_img = ptr->image;
-
+            ROS_INFO("Stereo Image Code  %d", stereo_img.type());
             for (int i = 0; i < NUM_OF_CAM; i++)
             {
                 cv::Mat tmp_img = stereo_img.rowRange(i * ROW, (i + 1) * ROW);
-                cv::cvtColor(show_img, tmp_img, CV_GRAY2RGB);
+                //cv::cvtColor(show_img, tmp_img, CV_GRAY2RGB);
 
                 for (unsigned int j = 0; j < trackerData[i].cur_pts.size(); j++)
                 {
+                    ROS_INFO("TRACKERDATA POINTS %d ", trackerData[i].cur_pts.size());
+                    ROS_INFO("TEMP  %d", tmp_img.type());
                     double len = std::min(1.0, 1.0 * trackerData[i].track_cnt[j] / WINDOW_SIZE);
                     cv::circle(tmp_img, trackerData[i].cur_pts[j], 2, cv::Scalar(255 * (1 - len), 0, 255 * len), 2);
                     //draw speed line
@@ -194,9 +197,11 @@ void img_callback(const sensor_msgs::ImageConstPtr &img_msg)
                     //sprintf(name, "%d", trackerData[i].ids[j]);
                     //cv::putText(tmp_img, name, trackerData[i].cur_pts[j], cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0));
                 }
+                ptr->image = tmp_img;
             }
             //cv::imshow("vis", stereo_img);
             //cv::waitKey(5);
+            ROS_INFO(" POINTER COLOR %s", ptr->encoding.c_str());
             pub_match.publish(ptr->toImageMsg());
         }
     }
