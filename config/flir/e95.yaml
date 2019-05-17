@@ -11,15 +11,15 @@ camera_name: camera
 image_width: 464
 image_height: 348
 distortion_parameters:
-   k1: -0.0369
-   k2: -0.0148
-   p1: -0.0033
-   p2: -0.0031 
+   k1: -0.0377 
+   k2: -0.0318
+   p1: -0.0045
+   p2: 0.0057 
 projection_parameters:
-   fx: 592.0167 
-   fy: 591.9606
-   cx: 227.5979 
-   cy: 167.1163
+   fx: 588.7111 
+   fy: 586.7258
+   cx: 239.8226
+   cy: 159.4145
 
 # Extrinsic parameter between IMU and Camera.
 estimate_extrinsic: 1   # 0  Have an accurate extrinsic parameters. We will trust the following imu^R_cam, imu^T_cam, don't change it.
@@ -45,7 +45,7 @@ extrinsicTranslation: !!opencv-matrix
 max_cnt: 150            # max feature number in feature tracking
 min_dist: 10            # min distance between two features  was 25
 freq: 10                # frequence (Hz) of publish tracking result. At least 10Hz for good estimation. If set 0, the frequence will be same as raw image 
-F_threshold: 1.0        # ransac threshold (pixel)
+F_threshold: 2.0        # ransac threshold (pixel)
 show_track: 1           # publish tracking image as topic
 equalize: 0             # if image is too dark or light, trun on equalize to find enough features
 fisheye: 0              # if using fisheye, trun on it. A circle mask will be loaded to remove edge noisy points
