@@ -37,7 +37,7 @@ KeyFrame::KeyFrame(double _time_stamp, int _index, Vector3d &_vio_T_w_i, Matrix3
 	computeWindowBRIEFPoint();
 	computeBRIEFPoint();
 	if(!DEBUG_IMAGE)
-		image.release();
+	  image.release();
 }
 
 // load previous keyframe
@@ -86,26 +86,31 @@ void KeyFrame::computeWindowBRIEFPoint()
 
 void KeyFrame::computeBRIEFPoint()
 {
-	BriefExtractor extractor(BRIEF_PATTERN_FILE.c_str());
-	const int fast_th = 20; // corner detector response threshold
-	if(0)//
-  {
-    ROS_INFO("FAAAAAAAAAAAAAAAAAAAAAAAAASST in Keypoint");
-		cv::FAST(image, keypoints, fast_th, true);
-  }
-	else
-	{
-		vector<cv::Point2f> tmp_pts;
-    cv::Mat image_32f;
-		cv::goodFeaturesToTrack(image, tmp_pts, 500, 0.01, 10);
-		for(int i = 0; i < (int)tmp_pts.size(); i++)
-		{
+    BriefExtractor extractor(BRIEF_PATTERN_FILE.c_str());
+    const int fast_th = 20; // corner detector response threshold
+    if(1)//
+    {
+        cv::Mat _img;
+        image.convertTo(_img, CV_8UC1, 256); 
+	    cv::FAST(_img, keypoints, fast_th, true);
+	    ROS_INFO("FAST with %d in Keypoint", keypoints.size());
+	    ROS_INFO("FAST image %d ", image.type());
+
+    }
+    else
+    {
+        vector<cv::Point2f> tmp_pts;
+        cv::Mat image_32f;
+	    cv::goodFeaturesToTrack(image, tmp_pts, 500, 0.01, 10);
+
+        for(int i = 0; i < (int)tmp_pts.size(); i++)
+	    {
 		    cv::KeyPoint key;
 		    key.pt = tmp_pts[i];
 		    keypoints.push_back(key);
-		}
-	}
-	extractor(image, keypoints, brief_descriptors);
+        }
+    }
+    extractor(image, keypoints, brief_descriptors);
 	for (int i = 0; i < (int)keypoints.size(); i++)
 	{
 		Eigen::Vector3d tmp_p;
@@ -420,8 +425,8 @@ bool KeyFrame::findConnection(KeyFrame* old_kf)
 	    #if 1
 	    	if (DEBUG_IMAGE)
 	        {
-	        	int gap = 10;
-	        	cv::Mat gap_image(ROW, gap, CV_8UC1, cv::Scalar(255, 255, 255));
+	            int gap = 10;
+	            cv::Mat gap_image(ROW, gap, CV_8UC1, cv::Scalar(255, 255, 255));
 	            cv::Mat gray_img, loop_match_img;
 	            cv::Mat old_img = old_kf->image;
 	            cv::hconcat(image, gap_image, gap_image);

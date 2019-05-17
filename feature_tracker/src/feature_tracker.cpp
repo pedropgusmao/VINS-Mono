@@ -95,8 +95,8 @@ void FeatureTracker::readImage(const cv::Mat &_img, double _cur_time)
         ROS_DEBUG("CLAHE costs: %fms", t_c.toc());
     }
     else{
-        //_img.convertTo(img, CV_32F, 1.0/65535.0f);
-        img = _img;
+        _img.convertTo(img, CV_32F, 1.0/65535.0f);
+        //img = _img;
     }
 
     if (forw_img.empty())
@@ -180,7 +180,9 @@ void FeatureTracker::readImage(const cv::Mat &_img, double _cur_time)
             cv::Mat forw_img_32f;
             forw_img.convertTo(forw_img_32f, CV_32FC1, 1.0/65535.0);
             //cv::goodFeaturesToTrack(forw_img_32f, n_pts, MAX_CNT - forw_pts.size(), 0.001, MIN_DIST);
-            cv::goodFeaturesToTrack(forw_img_32f, n_pts, MAX_CNT - forw_pts.size(), 0.000001, MIN_DIST);
+	    ROS_DEBUG("Good feature %d", forw_img_32f.type());
+	    ROS_INFO("Good feature %d", forw_img_32f.type());
+            cv::goodFeaturesToTrack(forw_img_32f, n_pts, MAX_CNT - forw_pts.size(), 0.00001, MIN_DIST);
             ROS_INFO("Number of goodFeatures found inside FeatureTracker::readImage %ul", n_pts.size());
             //cv::goodFeaturesToTrack(forw_img, n_pts, MAX_CNT - forw_pts.size(), 0.01, MIN_DIST, mask);
         }
