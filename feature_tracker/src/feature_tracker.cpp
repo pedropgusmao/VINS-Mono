@@ -95,7 +95,8 @@ void FeatureTracker::readImage(const cv::Mat &_img, double _cur_time)
         ROS_DEBUG("CLAHE costs: %fms", t_c.toc());
     }
     else{
-        _img.convertTo(img, CV_32F, 1.0/65535.0f);
+        //_img.convertTo(img, CV_32F, 1.0/65535.0f);
+        img = _img;
     }
 
     if (forw_img.empty())
@@ -116,8 +117,15 @@ void FeatureTracker::readImage(const cv::Mat &_img, double _cur_time)
         vector<float> err;
 
         //worse case scenario, apply normalization to each patch during OpicalFlow 
-        cv::Mat cur_img_8u, forw_img_8u;
+        cv::Mat cur_img_8u, forw_img_8u, cur_img_16_clahe, forw_img_16_clahe;
         double cur_min, cur_max, forw_min, forw_max, min_16, max_16;
+
+	cv::Ptr<cv::CLAHE> clahe  = cv::createCLAHE();
+	ROS_DEBUG("Image type %d", cur_img.type());
+	ROS_INFO("Image type %d", cur_img.type());
+
+	//clahe->apply(cur_img, cur_img_16_clahe);
+	//clahe->apply(forw_img, forw_img_16_clahe);
 
         cv::minMaxLoc(cur_img, &cur_min, &cur_max);
         cv::minMaxLoc(forw_img, &forw_min, &forw_max);
@@ -171,7 +179,8 @@ void FeatureTracker::readImage(const cv::Mat &_img, double _cur_time)
 
             cv::Mat forw_img_32f;
             forw_img.convertTo(forw_img_32f, CV_32FC1, 1.0/65535.0);
-            cv::goodFeaturesToTrack(forw_img_32f, n_pts, MAX_CNT - forw_pts.size(), 0.001, MIN_DIST);
+            //cv::goodFeaturesToTrack(forw_img_32f, n_pts, MAX_CNT - forw_pts.size(), 0.001, MIN_DIST);
+            cv::goodFeaturesToTrack(forw_img_32f, n_pts, MAX_CNT - forw_pts.size(), 0.000001, MIN_DIST);
             ROS_INFO("Number of goodFeatures found inside FeatureTracker::readImage %ul", n_pts.size());
             //cv::goodFeaturesToTrack(forw_img, n_pts, MAX_CNT - forw_pts.size(), 0.01, MIN_DIST, mask);
         }
@@ -200,6 +209,8 @@ void FeatureTracker::rejectWithF()
         ROS_DEBUG("FM ransac begins");
         TicToc t_f;
         vector<cv::Point2f> un_cur_pts(cur_pts.size()), un_forw_pts(forw_pts.size());
+        ROS_DEBUG("liftProjective  %d ", cur_pts.size());
+        ROS_INFO("liftProjective  %d ", cur_pts.size());
         for (unsigned int i = 0; i < cur_pts.size(); i++)
         {
             Eigen::Vector3d tmp_p;
@@ -224,6 +235,7 @@ void FeatureTracker::rejectWithF()
         reduceVector(ids, status);
         reduceVector(track_cnt, status);
         ROS_DEBUG("FM ransac: %d -> %lu: %f", size_a, forw_pts.size(), 1.0 * forw_pts.size() / size_a);
+        ROS_INFO("FM ransac: %d -> %lu: %f", size_a, forw_pts.size(), 1.0 * forw_pts.size() / size_a);
         ROS_DEBUG("FM ransac costs: %fms", t_f.toc());
     }
 }

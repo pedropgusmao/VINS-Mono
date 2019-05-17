@@ -167,9 +167,10 @@ void img_callback(const sensor_msgs::ImageConstPtr &img_msg)
 
         if (SHOW_TRACK)
         {
-            ptr = cv_bridge::cvtColor(ptr, sensor_msgs::image_encodings::BGR8);
+            //ptr = cv_bridge::cvtColor(ptr, sensor_msgs::image_encodings::BGR8);
+	    cv_bridge::CvImagePtr ptr2 = cv_bridge::cvtColor(ptr, sensor_msgs::image_encodings::BGR8);
             //cv::Mat stereo_img(ROW * NUM_OF_CAM, COL, CV_8UC3);
-            cv::Mat stereo_img = ptr->image;
+            cv::Mat stereo_img = ptr2->image;
             ROS_INFO("Stereo Image Code  %d", stereo_img.type());
             for (int i = 0; i < NUM_OF_CAM; i++)
             {
@@ -197,12 +198,12 @@ void img_callback(const sensor_msgs::ImageConstPtr &img_msg)
                     //sprintf(name, "%d", trackerData[i].ids[j]);
                     //cv::putText(tmp_img, name, trackerData[i].cur_pts[j], cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0));
                 }
-                ptr->image = tmp_img;
+                ptr2->image = tmp_img;
             }
             //cv::imshow("vis", stereo_img);
             //cv::waitKey(5);
-            ROS_INFO(" POINTER COLOR %s", ptr->encoding.c_str());
-            pub_match.publish(ptr->toImageMsg());
+            ROS_INFO(" POINTER COLOR %s", ptr2->encoding.c_str());
+            pub_match.publish(ptr2->toImageMsg());
         }
     }
     ROS_INFO("whole feature tracker processing costs: %f", t_r.toc());
